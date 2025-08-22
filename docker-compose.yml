@@ -1,4 +1,45 @@
+network:
+  powerdns_net:
+    driver: bridge
+
+
 services:
   powerdns-db:
-    name:
-    
+    image: postgres:15-alpine
+    container_name: powerdns-db
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRESQL_MAX_CONNECTIONS: "200"
+    volumes:
+      - ./data/postgres-data:/var/lib/postgresql/data
+    networks:
+      - powerdns_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+  powerdns-server:
+    image: 
+  powerdns-admin:
+    image: poweradmin/poweradmin:latest
+    restart: always
+    environment:
+      DB_TYPE: pgsql
+      DB_HOST: your-postgres-host
+      DB_USER: poweradmin
+      DB_PASS: password
+      DB_NAME: poweradmin
+      DNS_NS1: ns1.yourdomain.com
+      DNS_NS2: ns2.yourdomain.com
+      DNS_HOSTMASTER: hostmaster.yourdomain.com
+    networks:
+      - powerdns_net
